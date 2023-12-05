@@ -23,24 +23,17 @@ def getQuestions():
     data = json.load(f)
     data_ = data['posts'] # returns dict
     post_list = data_['row'] # returns list
-    # keys I want for Q: '@ParentId' , '@Id', '@Score', '@OwnerUserId', '@ViewCount'
-    # keys I want for A: '@ParentId' , '@Id', '@Score', '@OwnerUserId''
-    print(post_list[0].keys()) # dict_keys(['@Id', '@PostTypeId', '@CreationDate', '@Score', '@ViewCount', '@Body', '@OwnerUserId', '@LastActivityDate', '@Title', '@Tags', '@AnswerCount', '@CommentCount', '@ClosedDate', '@ContentLicense'])
-    # assert False
+
     questions_list = []
     for post in post_list:
-        # print("type(@PostTypeId) --> ", type(post['@PostTypeId']))
         if checkKey(d=post, key='@PostTypeId') and post['@PostTypeId'] == str(1):
-            questions_list_list.append(post)
+            questions_list.append(post)
     
     print(len(questions_list))
                 
     return questions_list
 
 def getAnswers():
-    raise NotImplementedError
-    
-def queryQuestions(tag=None):
     # Opening JSON file
     f = open('json/Posts.json') 
  
@@ -48,13 +41,21 @@ def queryQuestions(tag=None):
     data = json.load(f)
     data_ = data['posts'] # returns dict
     post_list = data_['row'] # returns list
-    # keys I want for Q: '@ParentId' , '@Id', '@Score', '@OwnerUserId', '@ViewCount'
-    # keys I want for A: '@ParentId' , '@Id', '@Score', '@OwnerUserId''
-    print(post_list[0].keys()) # dict_keys(['@Id', '@PostTypeId', '@CreationDate', '@Score', '@ViewCount', '@Body', '@OwnerUserId', '@LastActivityDate', '@Title', '@Tags', '@AnswerCount', '@CommentCount', '@ClosedDate', '@ContentLicense'])
-    # assert False
-    tagged_PostID_list = []
+
+    answers_list = []
     for post in post_list:
-        # print("type(@PostTypeId) --> ", type(post['@PostTypeId']))
+        if checkKey(d=post, key='@PostTypeId') and post['@PostTypeId'] == str(2):
+            answers_list.append(post)
+    
+    print(len(answers_list))         
+    return answers_list
+    
+def queryQuestions(questions_list=None, tag=None):
+    # Opening JSON file
+    f = open('json/Posts.json') 
+
+    tagged_PostID_list = []
+    for post in questions_list:
         if checkKey(d=post, key='@Tags') and checkKey(d=post, key='@OwnerUserId')  and checkKey(d=post, key='@Score') and checkKey(d=post, key='@ViewCount'):
             if post['@Tags'] == tag: 
                 tagged_PostID_list.append({'@Id':post['@Id'], '@OwnerUserId':post['@OwnerUserId'], '@Score':post['@Score'], '@ViewCount':post['@ViewCount']})
@@ -65,36 +66,56 @@ def queryQuestions(tag=None):
 
 # posttype --> 1:question, 2:answers
 # parentID (for answer) 
-def queryAnswers(tagged_PostList=None):
+def queryAnswers(answers_list=None, tagged_PostList=None):
     f = open('json/Posts.json') 
-    #input1 list of tagged post dictionaries
-    #input2 list of posts again
+
     
     # Query PosttypeID --> 2 (answer), if posttypeID==2 get parentID 
     # to find the most downvoted:
     # 1) find posts w/ PostTypeID == 2 then take parentID and compare it to the list of postID dictionaries
     # 2)to find votes --> take the new postID list and find the VoteTypeID and count it
     # 3) then we need to the list postIDs according to score and or the amount of downvotes?
+    
+    tagged_answer_list = []
+    for answer in answers_list:
+        for post in tagged_PostList:
+            if answer['@ParentId'] == post["@Id"]:
+                tagged_answer_list.append(answer)
+    
 
+    return tagged_answer_list
+    
+    
+def queryVotes(tagged_list=None):
+    f = open('json/Votes.json') 
  
     # returns JSON object as a dictionary
     data = json.load(f)
-    data_ = data['posts'] # returns dict
-    answer_list = data_['row'] # returns list
+    print(data.keys())
+    data_ = data['votes'] # returns dict
+    vote_list = data_['row'] # returns list
     
-    print(len(answer_list))
-    print(len(tagged_PostList))
-    tagged_answer_list = []
-    # assert False
-    for answer in answer_list:
-        if checkKey(d=answer, key='@PostTypeId') and answer['@PostTypeId'] == str(2):
-            print("answers?")
+    print(len(vote_list))
     
+    tagged_vote_list = []
+    for vote in vote_list:
+        # print(vote.keys())
+        for post in tagged_list:
+            if vote['@Id'] == post["@Id"]:
+                tagged_vote_list.append(vote)
+                # can we make a dictionary that quickly shows the votetype based postID
     
-def queryVotes():
-    raise NotImplementedError
+    print(len(tagged_vote_list))
+    print(tagged_vote_list[0])
+    assert False
 
 
+questions = getQuestions()
+answers = getAnswers()
 
-tagged_Posts = queryQuestions(tag="<machine-learning>")
-queryAnswers(tagged_PostList=tagged_Posts)
+tagged_Questions = queryQuestions(questions_list=questions, tag="<machine-learning>")
+tagged_Answers = queryAnswers(answers_list=answers, tagged_PostList=tagged_Questions)
+
+queryVotes(tagged_list=tagged_Answers)
+
+
