@@ -15,7 +15,7 @@ def checkKey(d=None, key=None):
     else:
         return False
     
-def queryPosts(tag=None):
+def queryQuestions(tag=None):
     # Opening JSON file
     f = open('json/Posts.json') 
  
@@ -36,16 +36,15 @@ def queryPosts(tag=None):
                 
     print("machine learning posts found --> ", len(tagged_PostID_list))
     # print(tagged_PostID_list)
-    assert False
+    # assert False
 
     # Closing file
     f.close()
     return tagged_PostID_list
 
-
 # posttype --> 1:question, 2:answers
 # parentID (for answer) 
-def queryComments(postID=None):
+def queryAnswers(postID=None):
     f = open('json/Comments.json') 
  
     # returns JSON object as a dictionary
@@ -63,5 +62,5 @@ def queryComments(postID=None):
                 
     print("machine learning posts found --> ", len(tagged_PostID_list))
 
-queryPosts(tag='@Tags')
+tagged_Posts = queryQuestions(tag='@Tags')
 # queryComments()
