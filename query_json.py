@@ -15,6 +15,31 @@ def checkKey(d=None, key=None):
     else:
         return False
     
+def getQuestions():
+    # Opening JSON file
+    f = open('json/Posts.json') 
+ 
+    # returns JSON object as a dictionary
+    data = json.load(f)
+    data_ = data['posts'] # returns dict
+    post_list = data_['row'] # returns list
+    # keys I want for Q: '@ParentId' , '@Id', '@Score', '@OwnerUserId', '@ViewCount'
+    # keys I want for A: '@ParentId' , '@Id', '@Score', '@OwnerUserId''
+    print(post_list[0].keys()) # dict_keys(['@Id', '@PostTypeId', '@CreationDate', '@Score', '@ViewCount', '@Body', '@OwnerUserId', '@LastActivityDate', '@Title', '@Tags', '@AnswerCount', '@CommentCount', '@ClosedDate', '@ContentLicense'])
+    # assert False
+    questions_list = []
+    for post in post_list:
+        # print("type(@PostTypeId) --> ", type(post['@PostTypeId']))
+        if checkKey(d=post, key='@PostTypeId') and post['@PostTypeId'] == str(1):
+            questions_list_list.append(post)
+    
+    print(len(questions_list))
+                
+    return questions_list
+
+def getAnswers():
+    raise NotImplementedError
+    
 def queryQuestions(tag=None):
     # Opening JSON file
     f = open('json/Posts.json') 
@@ -30,23 +55,18 @@ def queryQuestions(tag=None):
     tagged_PostID_list = []
     for post in post_list:
         # print("type(@PostTypeId) --> ", type(post['@PostTypeId']))
-        if checkKey(d=post, key=tag) and checkKey(d=post, key='@OwnerUserId')  and checkKey(d=post, key='@Score') and checkKey(d=post, key='@ViewCount'):
-            if post['@Tags'] == "<machine-learning>": 
+        if checkKey(d=post, key='@Tags') and checkKey(d=post, key='@OwnerUserId')  and checkKey(d=post, key='@Score') and checkKey(d=post, key='@ViewCount'):
+            if post['@Tags'] == tag: 
                 tagged_PostID_list.append({'@Id':post['@Id'], '@OwnerUserId':post['@OwnerUserId'], '@Score':post['@Score'], '@ViewCount':post['@ViewCount']})
                 
     print("machine learning posts found --> ", len(tagged_PostID_list))
-    # print(tagged_PostID_list)
-    # assert False
-
-    # Closing file
     f.close()
     return tagged_PostID_list
 
 # posttype --> 1:question, 2:answers
 # parentID (for answer) 
-def queryAnswers(postID=None):
-    f = open('json/Comments.json') 
-    
+def queryAnswers(tagged_PostList=None):
+    f = open('json/Posts.json') 
     #input1 list of tagged post dictionaries
     #input2 list of posts again
     
@@ -59,18 +79,16 @@ def queryAnswers(postID=None):
  
     # returns JSON object as a dictionary
     data = json.load(f)
-    data_ = data['comments'] # returns dict
-    comment_list = data_['row'] # returns list
+    data_ = data['posts'] # returns dict
+    answer_list = data_['row'] # returns list
     
-    tagged_comment_list = []
-    for comment in comment_list:
-        print(comment.keys())
-        assert False
-        if checkKey(d=post, key=tag):
-            if post['@Tags'] == "<machine-learning>": 
-                tagged_comment_list.append(post['@Id'])
-                
-    print("machine learning posts found --> ", len(tagged_PostID_list))
+    print(len(answer_list))
+    print(len(tagged_PostList))
+    tagged_answer_list = []
+    # assert False
+    for answer in answer_list:
+        if checkKey(d=answer, key='@PostTypeId') and answer['@PostTypeId'] == str(2):
+            print("answers?")
     
     
 def queryVotes():
@@ -78,5 +96,5 @@ def queryVotes():
 
 
 
-tagged_Posts = queryQuestions(tag='@Tags')
-# queryComments()
+tagged_Posts = queryQuestions(tag="<machine-learning>")
+queryAnswers(tagged_PostList=tagged_Posts)
