@@ -105,8 +105,41 @@ def queryVotes(tagged_list=None):
     return tagged_vote_list
 
 
-def voteAnalysis(tagged_votes=None):
-    raise NotImplementedError
+def voteAnalysis(tagged_votes=None, tagged_posts=None):
+    postID_vote_dict = {}
+    for post in tagged_posts:
+        for vote in tagged_votes:
+            if vote['@Id'] == post['@Id']:
+                # print(post['@Id'],vote['@Id'],vote['@VoteTypeId'])
+                
+                if post['@Id'] not in postID_vote_dict:
+                    tmp = {post['@Id']:{"1":0, "2":0, "3":0, "12":0, "15":0}}
+                    postID_vote_dict.update(tmp)
+                    # vote ID 1, 2, 3, 12 and 15
+                    # print(tmp)
+                    # assert False
+                else:
+                    if vote['@VoteTypeId'] == str(1):
+                        postID_vote_dict[post['@Id']]["1"] += 1
+                    
+                    elif vote['@VoteTypeId'] == str(2):
+                        postID_vote_dict[post['@Id']]["2"] += 1
+                    
+                    elif vote['@VoteTypeId'] == str(3):
+                        postID_vote_dict[post['@Id']]["3"] += 1
+                    
+                    elif vote['@VoteTypeId'] == str(12):
+                        postID_vote_dict[post['@Id']]["12"] += 1
+                        
+                    elif vote['@VoteTypeId'] == str(15):
+                        postID_vote_dict[post['@Id']]["15"] += 1
+
+                    # postID_vote_dict[post['@Id']] += 1
+    # print(postID_vote_dict['120324'])
+    return postID_vote_dict   
+
+
+
 
 questions = getQuestions()
 answers = getAnswers()
@@ -116,7 +149,10 @@ print("len(tagged questions: ) --> ", len(tagged_Questions))
 tagged_Answers = queryAnswers(answers_list=answers, tagged_PostList=tagged_Questions)
 print("len(tagged_Answers) --> ", len(tagged_Answers))
 
-tagged_votes = queryVotes(tagged_list=tagged_Answers)
+tagged_Votes = queryVotes(tagged_list=tagged_Answers)
+vote_Counts = voteAnalysis(tagged_votes=tagged_Votes, tagged_posts=tagged_Answers)
+
+
 # print("wtf: ", len(tagged_votes))
 # print(tagged_votes[69])
 
