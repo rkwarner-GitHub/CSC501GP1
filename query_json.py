@@ -26,14 +26,17 @@ def queryPosts(tag=None):
     # keys I want for Q: '@ParentId' , '@Id', '@Score', '@OwnerUserId', '@ViewCount'
     # keys I want for A: '@ParentId' , '@Id', '@Score', '@OwnerUserId''
     print(post_list[0].keys()) # dict_keys(['@Id', '@PostTypeId', '@CreationDate', '@Score', '@ViewCount', '@Body', '@OwnerUserId', '@LastActivityDate', '@Title', '@Tags', '@AnswerCount', '@CommentCount', '@ClosedDate', '@ContentLicense'])
-    assert False
+    # assert False
     tagged_PostID_list = []
     for post in post_list:
-        if checkKey(d=post, key=tag):
+        # print("type(@PostTypeId) --> ", type(post['@PostTypeId']))
+        if checkKey(d=post, key=tag) and checkKey(d=post, key='@OwnerUserId')  and checkKey(d=post, key='@Score') and checkKey(d=post, key='@ViewCount'):
             if post['@Tags'] == "<machine-learning>": 
-                tagged_PostID_list.append(post['@Id'])
+                tagged_PostID_list.append({'@Id':post['@Id'], '@OwnerUserId':post['@OwnerUserId'], '@Score':post['@Score'], '@ViewCount':post['@ViewCount']})
                 
     print("machine learning posts found --> ", len(tagged_PostID_list))
+    # print(tagged_PostID_list)
+    assert False
 
     # Closing file
     f.close()
