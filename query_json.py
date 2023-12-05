@@ -95,27 +95,33 @@ def queryVotes(tagged_list=None):
     data_ = data['votes'] # returns dict
     vote_list = data_['row'] # returns list
     
-    print(len(vote_list))
-    
     tagged_vote_list = []
     for vote in vote_list:
         # print(vote.keys())
         for post in tagged_list:
-            if vote['@Id'] == post["@Id"]:
-                tagged_vote_list.append(vote)
-                # can we make a dictionary that quickly shows the votetype based postID
+            if vote['@PostId'] == post["@Id"]:
+                tagged_vote_list.append({'@Id':vote['@PostId'], '@VoteTypeId': vote['@VoteTypeId']})
     
-    print(len(tagged_vote_list))
-    print(tagged_vote_list[0])
-    assert False
+    return tagged_vote_list
 
+
+def voteAnalysis(tagged_votes=None):
+    raise NotImplementedError
 
 questions = getQuestions()
 answers = getAnswers()
 
 tagged_Questions = queryQuestions(questions_list=questions, tag="<machine-learning>")
+print("len(tagged questions: ) --> ", len(tagged_Questions))
 tagged_Answers = queryAnswers(answers_list=answers, tagged_PostList=tagged_Questions)
+print("len(tagged_Answers) --> ", len(tagged_Answers))
 
-queryVotes(tagged_list=tagged_Answers)
+tagged_votes = queryVotes(tagged_list=tagged_Answers)
+# print("wtf: ", len(tagged_votes))
+# print(tagged_votes[69])
+
+
+
+
 
 
