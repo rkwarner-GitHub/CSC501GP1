@@ -47,8 +47,15 @@ def queryQuestions(tag=None):
 def queryAnswers(postID=None):
     f = open('json/Comments.json') 
     
+    #input1 list of tagged post dictionaries
+    #input2 list of posts again
     
     # Query PosttypeID --> 2 (answer), if posttypeID==2 get parentID 
+    # to find the most downvoted:
+    # 1) find posts w/ PostTypeID == 2 then take parentID and compare it to the list of postID dictionaries
+    # 2)to find votes --> take the new postID list and find the VoteTypeID and count it
+    # 3) then we need to the list postIDs according to score and or the amount of downvotes?
+
  
     # returns JSON object as a dictionary
     data = json.load(f)
