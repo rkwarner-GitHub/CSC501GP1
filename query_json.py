@@ -46,6 +46,9 @@ def queryQuestions(tag=None):
 # parentID (for answer) 
 def queryAnswers(postID=None):
     f = open('json/Comments.json') 
+    
+    
+    # Query PosttypeID --> 2 (answer), if posttypeID==2 get parentID 
  
     # returns JSON object as a dictionary
     data = json.load(f)
@@ -61,6 +64,12 @@ def queryAnswers(postID=None):
                 tagged_comment_list.append(post['@Id'])
                 
     print("machine learning posts found --> ", len(tagged_PostID_list))
+    
+    
+def queryVotes():
+    raise NotImplementedError
+
+
 
 tagged_Posts = queryQuestions(tag='@Tags')
 # queryComments()
