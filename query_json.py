@@ -174,6 +174,15 @@ def queryOwners(tagged_posts=None, vote_counts=None):
     return owner_post_vote_counts_dicts
 
 
+def saveDict(dict):
+    import pickle
+    with open('data/' + args.tag + '.pickle', 'wb') as handle:
+        pickle.dump(dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+    with open('data/' + args.tag + '.pickle', 'rb') as handle:
+        d_dict = pickle.load(handle)
+        print(dict == d_dict)
+
 questions = getQuestions()
 answers = getAnswers()
 
@@ -189,8 +198,9 @@ tagged_Votes = queryVotes(tagged_list=tagged_Answers)
 vote_Counts = voteAnalysis(tagged_votes=tagged_Votes, tagged_posts=tagged_Answers)
 
 owner_post_VoteCounts = queryOwners(tagged_posts=tagged_Answers, vote_counts=vote_Counts)
+saveDict(owner_post_VoteCounts)
 
-print(owner_post_VoteCounts)
+# print(owner_post_VoteCounts)
 
 
 
