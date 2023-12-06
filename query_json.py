@@ -17,6 +17,8 @@ parser = argparse.ArgumentParser(description='Process some integers.')
 parser.add_argument('--tag', type=str, help='tags to search for')
 parser.add_argument('--newquery', type=boolean_string, default=False, help='run new query')
 parser.add_argument('--load', type=boolean_string, default=False, help='load from save file')
+parser.add_argument('--answer', type=boolean_string, default=True, help='choose True to get questions')
+
 args = parser.parse_args()
 print(args)
 args.tag = "<" + args.tag + ">"
@@ -98,7 +100,6 @@ def queryQuestions(questions_list=None, tag=None):
             if check_tags(tags=post["@Tags"], queries=tag):
                 tagged_PostID_list.append({'@Id':post['@Id'], '@OwnerUserId':post['@OwnerUserId'], '@Score':post['@Score'], '@ViewCount':post['@ViewCount']})
                 
-    # print(str(tag) + " posts found --> ", len(tagged_PostID_list))
     f.close()
     return tagged_PostID_list
 
@@ -116,7 +117,6 @@ def queryAnswers(answers_list=None, tagged_PostList=None):
 
     return tagged_answer_list
 
-    
     
 def queryVotes(tagged_list=None):
     f = open('json/Votes.json') 
@@ -182,19 +182,24 @@ def queryOwners(tagged_posts=None, vote_counts=None):
 
 
 def saveDict(dict):
-    with open('data/' + args.tag + '.pickle', 'wb') as handle:
+    with open('data/' + args.tag + str(args.answer) +'.pickle', 'wb') as handle:
         pickle.dump(dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-    with open('data/' + args.tag + '.pickle', 'rb') as handle:
+    with open('data/' + args.tag + str(args.answer) + '.pickle', 'rb') as handle:
         d_dict = pickle.load(handle)
         print(dict == d_dict)
 
 
-def sum_userVotes():
+def sum_userVotes(tag=args.tag):
+    import numpy as np
     d_dict = None
-    with open('data/' + args.tag + '.pickle', 'rb') as handle:
-        d_dict = pickle.load(handle)
-        
+    
+    try:
+        with open('data/' + tag + str(args.answer) + '.pickle', 'rb') as handle:
+            d_dict = pickle.load(handle)
+    except:
+        with open('data/' + tag  + '.pickle', 'rb') as handle:
+            d_dict = pickle.load(handle)
     
     
     sorted_keys = sorted(d_dict.keys())
@@ -239,12 +244,172 @@ def sum_userVotes():
         accepted_vote_list.append(accepted_votes)
         spam_vote_list.append(spam_votes)
             
-    return [up_vote_list, down_vote_list, accepted_vote_list, spam_vote_list]
+    return [np.array(up_vote_list).astype(np.float32), np.array(down_vote_list).astype(np.float32), np.array(accepted_vote_list).astype(np.float32), np.array(spam_vote_list).astype(np.float32)]
     
-def makeHistogram(vote_list=None):
-    raise NotImplementedError
+def make_upvote_vs_downvote_Histogram(vote_list=None):
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    from matplotlib import colors
+    from matplotlib.ticker import PercentFormatter
+    
+    
+    
+    
+    N_points = len(vote_list[0])
+    n_bins = len(vote_list[1])
+    
+    # Fixing random state for reproducibility
+    up_votes =  np.array(vote_list[0]).astype(np.float32)
+    down_votes = np.array(vote_list[1]).astype(np.float32)
+    
+    # fig, axs = plt.subplots(tight_layout=True)
+    # hist = axs.hist2d(up_votes, down_votes)
+    
+    # print(axs)
+    fig, axs = plt.subplots(3, 1, figsize=(5, 15), sharex=True, sharey=True,
+                        tight_layout=True)
+    
+    ## We can increase the number of bins on each axis
+    axs[0].hist2d(up_votes, down_votes, bins=40)
+
+    # As well as define normalization of the colors
+    axs[1].hist2d(up_votes, down_votes, bins=40, norm=colors.LogNorm())
+
+    # We can also define custom numbers of bins for each axis
+    axs[2].hist2d(up_votes, down_votes, bins=(80, 10), norm=colors.LogNorm())
+
+    plt.show()
+    plt.savefig("data/imgs/" + args.tag + str(args.answer) + 'histogram.png') 
+    
+def hexagonalHistogram(vote_list=None):
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    # Fixing random state for reproducibility
+    np.random.seed(19680801)
+
+    x =  np.array(vote_list[0]).astype(np.float32)
+    y = np.array(vote_list[1]).astype(np.float32)
+    xlim = x.min(), x.max()
+    ylim = y.min(), y.max()
+
+    fig, (ax0, ax1) = plt.subplots(ncols=2, sharey=True, figsize=(9, 4))
+
+    hb = ax0.hexbin(x, y, gridsize=50, cmap='inferno')
+    ax0.set(xlim=xlim, ylim=ylim)
+    ax0.set_title("Hexagon binning")
+    cb = fig.colorbar(hb, ax=ax0, label='counts')
+
+    hb = ax1.hexbin(x, y, gridsize=50, bins='log', cmap='inferno')
+    ax1.set(xlim=xlim, ylim=ylim)
+    ax1.set_title("With a log color scale")
+    cb = fig.colorbar(hb, ax=ax1, label='log10(N)')
+
+    plt.show()
+    plt.savefig("data/imgs/" + args.tag + str(args.answer) + 'hexagonalhistogram.png') 
+    
+
+def adjacent_values(vals, q1, q3):
+    upper_adjacent_value = q3 + (q3 - q1) * 1.5
+    upper_adjacent_value = np.clip(upper_adjacent_value, q3, vals[-1])
+
+    lower_adjacent_value = q1 - (q3 - q1) * 1.5
+    lower_adjacent_value = np.clip(lower_adjacent_value, vals[0], q1)
+    return lower_adjacent_value, upper_adjacent_value
 
 
+def set_axis_style(ax, labels):
+    ax.set_xticks(np.arange(1, len(labels) + 1), labels=labels)
+    ax.set_xlim(0.25, len(labels) + 0.75)
+    ax.set_xlabel('Sample name')
+
+
+def violinPlot(vote_list=None):
+    import matplotlib.pyplot as plt
+    import numpy as np
+    
+    # ai_vote_list, ml_vote_list, python_vote_list, nlp_vote_list
+    
+    ai_upvote =  np.array(vote_list[0][0]).astype(np.float32)
+    ai_downvote = np.array(vote_list[0][1]).astype(np.float32)
+    ml_upvote =  np.array(vote_list[1][0]).astype(np.float32)
+    ml_downvote = np.array(vote_list[1][1]).astype(np.float32)
+    python_upvote = np.array(vote_list[2][0]).astype(np.float32)
+    python_downvote = np.array(vote_list[2][1]).astype(np.float32)
+    nlp_upvote = np.array(vote_list[3][0]).astype(np.float32)
+    nlp_downvote = np.array(vote_list[3][1]).astype(np.float32)
+    
+    ai_y = ai_upvote - ai_downvote
+    ml_y = ml_upvote - ml_downvote
+    python_y = python_upvote - python_downvote
+    nlp_y = nlp_upvote - nlp_downvote
+    
+    vote_list = [ai_y, ml_y, python_y,  nlp_y]
+    
+    # # create test data
+    # np.random.seed(19680801)
+    # data = [sorted(np.random.normal(0, std, 100)) for std in range(1, 5)]
+
+    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(9, 4), sharey=True)
+    ax1.set_title('Default violin plot')
+    ax1.set_ylabel('UpVotes - DownVotes')
+    ax1.violinplot(vote_list)
+    
+    ax2.set_title('UpVotes - DownVotes for  various StackExchange tags violin plot')
+    parts = ax2.violinplot(
+            vote_list, showmeans=False, showmedians=False,
+            showextrema=False)
+    
+    # print(vote_list)
+    
+    # fig = plt.figure()
+    
+
+    # Create an axes instance
+    ax = fig.add_axes([0,0,1,1])
+    
+    ax1.set_title('Default violin plot')
+    ax1.set_ylabel('UpVotes - DownVotes')
+
+    # Create the boxplot
+    bp = ax.violinplot(vote_list, showmeans=True, showmedians=False)
+    plt.show()
+
+    # ax1.set_title('Default violin plot')
+    # ax1.set_ylabel('UpVotes - DownVotes')
+    # ax1.violinplot(vote_list)
+
+    # ax2.set_title('UpVotes - DownVotes for  various StackExchange tags violin plot')
+    # parts = ax2.violinplot(
+    #         vote_list, showmeans=False, showmedians=False,
+    #         showextrema=False)
+
+    # for pc in parts['bodies']:
+    #     pc.set_facecolor('#D43F3A')
+    #     pc.set_edgecolor('black')
+    #     pc.set_alpha(1)
+
+    # quartile1, medians, quartile3 = np.percentile(vote_list, [25, 50, 75], axis=1)
+    # whiskers = np.array([
+    #     adjacent_values(sorted_array, q1, q3)
+    #     for sorted_array, q1, q3 in zip(vote_list, quartile1, quartile3)])
+    # whiskers_min, whiskers_max = whiskers[:, 0], whiskers[:, 1]
+
+    # inds = np.arange(1, len(medians) + 1)
+    # ax2.scatter(inds, medians, marker='o', color='white', s=30, zorder=3)
+    # ax2.vlines(inds, quartile1, quartile3, color='k', linestyle='-', lw=5)
+    # ax2.vlines(inds, whiskers_min, whiskers_max, color='k', linestyle='-', lw=1)
+
+    # # set style for the axes
+    # labels = ['A', 'B', 'C', 'D']
+    # for ax in [ax1, ax2]:
+    #     set_axis_style(ax, labels)
+
+    # plt.subplots_adjust(bottom=0.15, wspace=0.05)
+    
+    # plt.show()
+    plt.savefig("data/imgs/" + args.tag + str(args.answer) + 'volinPlot.png')
 
 def makeScatterPlot(vote_list=None):
     import matplotlib.pyplot as plt
@@ -259,16 +424,15 @@ def makeScatterPlot(vote_list=None):
     
     x = up_votes - down_votes
     y = accepted_votes - spam_votes
-    y = accepted_votes
+    # y = accepted_votes
     
-    # print(accepted_votes[0:100])
-    # print(spam_votes[0:100])
-    
-    # print(np.max(accepted_votes))
-    # print(np.min(down_votes))
-    
+    print(len(x))
     print(np.max(x))
     print(np.min(x))
+    print(np.max(accepted_votes))
+    print(np.min(spam_votes))
+    
+    print(accepted_votes)
     
     
     N = len(x)
@@ -279,12 +443,12 @@ def makeScatterPlot(vote_list=None):
     # plt.scatter(x, y, c=colors, alpha=0.5)
     plt.scatter(x, y)
     plt.show() 
-    plt.savefig("data/imgs/" + args.tag + '.png')   
+    plt.savefig("data/imgs/" + args.tag + str(args.answer) + '.png')   
 
 def main():
     # print("Hello World!")
 
-    if args.newquery and not args.load:
+    if args.newquery and args.answer and not args.load:
         questions = getQuestions()
         answers = getAnswers()
         tagged_Questions = queryQuestions(questions_list=questions, tag=args.tag)
@@ -300,10 +464,33 @@ def main():
         saveDict(owner_post_VoteCounts)
         vote_list = sum_userVotes()
         makeScatterPlot(vote_list=vote_list)
+    
+    elif args.newquery and not args.answer:
+        print("looking for question")
+        questions = getQuestions()
+        answers = getAnswers()
+        tagged_Questions = queryQuestions(questions_list=questions, tag=args.tag)
+
+
+        tagged_Votes = queryVotes(tagged_list=tagged_Questions)
+        vote_Counts = voteAnalysis(tagged_votes=tagged_Votes, tagged_posts=tagged_Questions)
+
+        owner_post_VoteCounts = queryOwners(tagged_posts=tagged_Questions, vote_counts=vote_Counts)
+        saveDict(owner_post_VoteCounts)
+        vote_list = sum_userVotes()
+        makeScatterPlot(vote_list=vote_list)
         
     elif args.load:
         vote_list = sum_userVotes()
         makeScatterPlot(vote_list=vote_list)
+        make_upvote_vs_downvote_Histogram(vote_list=vote_list)
+        hexagonalHistogram(vote_list=vote_list)
+        ai_vote_list = sum_userVotes(tag="<ai>")
+        ml_vote_list = sum_userVotes("<machine-learning>")
+        python_vote_list = sum_userVotes("<python>")
+        nlp_vote_list = sum_userVotes("<nlp>")
+        violin_list = [ai_vote_list, ml_vote_list, python_vote_list, nlp_vote_list]
+        violinPlot(vote_list=violin_list)
     
 if __name__ == "__main__":
     main()
