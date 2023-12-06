@@ -146,7 +146,7 @@ def voteAnalysis(tagged_votes=None, tagged_posts=None):
             if vote['@Id'] == post['@Id']:
                 
                 if post['@Id'] not in postID_vote_dict:
-                    tmp = {post['@Id']:{"1":0, "2":0, "3":0, "12":0, "15":0}}
+                    tmp = {post['@Id']:{"1":0, "2":0, "3":0, "12":0, "15":0, "count":0}}
                     postID_vote_dict.update(tmp)
 
                 else:
@@ -164,6 +164,8 @@ def voteAnalysis(tagged_votes=None, tagged_posts=None):
                         
                     elif vote['@VoteTypeId'] == str(15):
                         postID_vote_dict[post['@Id']]["15"] += 1
+                        
+                    postID_vote_dict[post['@Id']]["count"] += 1
 
     return postID_vote_dict   
 
@@ -213,6 +215,7 @@ def sum_userVotes(tag=args.tag):
     spam_vote_list = []
     up_vote_list = []
     down_vote_list = []
+    post_count_list = []
 
     
     for idx, key in enumerate(sorted_keys):
@@ -239,14 +242,22 @@ def sum_userVotes(tag=args.tag):
             
             elif vote_types == '12':
                 spam_votes += d['12']
-
-                
+            
+        # print("counts: ", d['count'])
+        
+        post_count_list.append(d['count'])
         up_vote_list.append(up_votes)
         down_vote_list.append(down_votes)
         accepted_vote_list.append(accepted_votes)
         spam_vote_list.append(spam_votes)
-            
-    return [np.array(up_vote_list).astype(np.float32), np.array(down_vote_list).astype(np.float32), np.array(accepted_vote_list).astype(np.float32), np.array(spam_vote_list).astype(np.float32)]
+      
+    return [
+        np.array(up_vote_list).astype(np.float32), 
+        np.array(down_vote_list).astype(np.float32), 
+        np.array(accepted_vote_list).astype(np.float32),
+        np.array(spam_vote_list).astype(np.float32),
+        np.array(post_count_list).astype(np.float32),
+        ]
     
 def make_upvote_vs_downvote_Histogram(vote_list=None):
     import matplotlib.pyplot as plt
@@ -409,7 +420,38 @@ def makeScatterPlot(vote_list=None):
     # plt.scatter(x, y, c=colors, alpha=0.5)
     plt.scatter(x, y)
     # plt.show() 
-    plt.savefig("data/imgs/" + args.tag[1:-1] + str(args.answer) + '.png')   
+    plt.savefig("data/imgs/" + args.tag[1:-1] + str(args.answer) + '.png') 
+
+def make3DScatterPlot(vote_list=None):
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    up_votes =  np.array(vote_list[0]).astype(np.float32)
+    down_votes = np.array(vote_list[1]).astype(np.float32)
+    
+    accepted_votes = np.array(vote_list[2]).astype(np.float32)
+    spam_votes =  np.array(vote_list[3]).astype(np.float32)
+    
+    author_counts = np.array(vote_list[4]).astype(np.float32)
+    
+    x = up_votes - down_votes
+    y = accepted_votes - spam_votes
+    z = author_counts
+    print("max --> ", np.max(z))
+    print("max y --> ", np.max(y))
+
+
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+
+    ax.scatter(x, y, z)
+
+    ax.set_xlabel('UpVotes - DownVotes')
+    ax.set_ylabel('AcceptedAnswer - Spam')
+    ax.set_zlabel('# of posts')
+    plt.savefig("data/imgs/" + args.tag[1:-1] + str(args.answer) + '3Dscatter.png') 
+
+    # plt.show()  
 
 def main():
     # print("Hello World!")
@@ -451,12 +493,15 @@ def main():
         makeScatterPlot(vote_list=vote_list)
         make_upvote_vs_downvote_Histogram(vote_list=vote_list)
         hexagonalHistogram(vote_list=vote_list)
-        ai_vote_list = sum_userVotes(tag="<ai>")
-        ml_vote_list = sum_userVotes("<machine-learning>")
-        python_vote_list = sum_userVotes("<python>")
-        nlp_vote_list = sum_userVotes("<nlp>")
-        violin_list = [ai_vote_list, ml_vote_list, python_vote_list, nlp_vote_list]
-        violinPlot(vote_list=violin_list)
+        make3DScatterPlot(vote_list=vote_list)
+        
+        
+        # ai_vote_list = sum_userVotes(tag="<ai>")
+        # ml_vote_list = sum_userVotes("<machine-learning>")
+        # python_vote_list = sum_userVotes("<python>")
+        # nlp_vote_list = sum_userVotes("<nlp>")
+        # violin_list = [ai_vote_list, ml_vote_list, python_vote_list, nlp_vote_list]
+        # violinPlot(vote_list=violin_list)
     
 if __name__ == "__main__":
     main()
