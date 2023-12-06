@@ -185,10 +185,10 @@ def queryOwners(tagged_posts=None, vote_counts=None):
 
 
 def saveDict(dict):
-    with open('data/' + args.tag + str(args.answer) +'.pickle', 'wb') as handle:
+    with open('data/' + args.tag[1:-1] + str(args.answer) +'.pickle', 'wb') as handle:
         pickle.dump(dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-    with open('data/' + args.tag + str(args.answer) + '.pickle', 'rb') as handle:
+    with open('data/' + args.tag[1:-1] + str(args.answer) + '.pickle', 'rb') as handle:
         d_dict = pickle.load(handle)
         print(dict == d_dict)
 
@@ -197,7 +197,7 @@ def sum_userVotes(tag=args.tag):
     d_dict = None
     
     try:
-        with open('data/' + tag + str(args.answer) + '.pickle', 'rb') as handle:
+        with open('data/' + tag[1:-1] + str(args.answer) + '.pickle', 'rb') as handle:
             d_dict = pickle.load(handle)
     except:
         with open('data/' + tag  + '.pickle', 'rb') as handle:
@@ -279,8 +279,8 @@ def make_upvote_vs_downvote_Histogram(vote_list=None):
     # We can also define custom numbers of bins for each axis
     axs[2].hist2d(up_votes, down_votes, bins=(80, 10), norm=colors.LogNorm())
 
-    plt.show()
-    plt.savefig("data/imgs/" + args.tag + str(args.answer) + 'histogram.png') 
+    # plt.show()
+    plt.savefig("data/imgs/" + args.tag[1:-1] + str(args.answer) + 'histogram.png') 
     
 def hexagonalHistogram(vote_list=None):
     import matplotlib.pyplot as plt
@@ -305,8 +305,8 @@ def hexagonalHistogram(vote_list=None):
     ax1.set_title("With a log color scale")
     cb = fig.colorbar(hb, ax=ax1, label='log10(N)')
 
-    plt.show()
-    plt.savefig("data/imgs/" + args.tag + str(args.answer) + 'hexagonalhistogram.png') 
+    # plt.show()
+    plt.savefig("data/imgs/" + args.tag[1:-1] + str(args.answer) + 'hexagonalhistogram.png') 
     
 
 def adjacent_values(vals, q1, q3):
@@ -373,9 +373,9 @@ def violinPlot(vote_list=None):
         set_axis_style(ax, labels)
 
 
-    plt.show()
+    # plt.show()
 
-    plt.savefig("data/imgs/" + args.tag + str(args.answer) + 'volinPlot.png')
+    plt.savefig("data/imgs/" + args.tag[1:-1] + str(args.answer) + 'volinPlot.png')
 
 def makeScatterPlot(vote_list=None):
     import matplotlib.pyplot as plt
@@ -408,8 +408,8 @@ def makeScatterPlot(vote_list=None):
     plt.scatter(x, y, s=area, c=colors, alpha=0.5)
     # plt.scatter(x, y, c=colors, alpha=0.5)
     plt.scatter(x, y)
-    plt.show() 
-    plt.savefig("data/imgs/" + args.tag + str(args.answer) + '.png')   
+    # plt.show() 
+    plt.savefig("data/imgs/" + args.tag[1:-1] + str(args.answer) + '.png')   
 
 def main():
     # print("Hello World!")
