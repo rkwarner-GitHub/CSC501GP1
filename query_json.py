@@ -4,9 +4,15 @@ import json
 import os
 path = "json/"
 files = [f for f in os.listdir(path)]
-print("files \n",files)
- 
+# print("files \n",files)
 
+
+import argparse 
+parser = argparse.ArgumentParser(description='Process some integers.')
+
+parser.add_argument('--tag', type=str, help='tags to search for')
+args = parser.parse_args()
+args.tag = "<" + args.tag + ">"
 
 def checkKey(d=None, key=None):
      
@@ -50,35 +56,45 @@ def getAnswers():
     print(len(answers_list))         
     return answers_list
 
-def get_tags():
-    import xml.etree.ElementTree as ET
-    # load and parse the file
-    xmlTree = ET.parse('myXMLFile.xml')
-
-    elemList = []
-
-    for elem in xmlTree.iter():
-        elemList.append(elem.tag)
-
-    # now I remove duplicities - by convertion to set and back to list
-    elemList = list(set(elemList))
-
-    # Just printing out the result
-    print(elemList)
+def check_tags(tags=None, queries=None):
+    
+    tags = tags.replace(">","")
+    tags = tags.split('<')
+    tags = tags[1:len(tags)]
+    
+    queries = queries.replace(">","")
+    queries = queries.split('<')
+    queries = queries[1:len(queries)]
+    
+    # print(queries)
+    
+    checker = False
+    for tag in tags:
+        for query in queries:
+            if tag == query:
+                checker = True
+                
+    return checker
     
 def queryQuestions(questions_list=None, tag=None):
     # Opening JSON file
     f = open('json/Posts.json') 
-
+    
+    
     tagged_PostID_list = []
     for post in questions_list:
+        # print(check_tags(tags=post["@Tags"], queries=tag))
+            
+            
         if checkKey(d=post, key='@Tags') and checkKey(d=post, key='@OwnerUserId')  and checkKey(d=post, key='@Score') and checkKey(d=post, key='@ViewCount'):
-            if post['@Tags'] == tag: 
+            # if post['@Tags'] == tag: 
+            if check_tags(tags=post["@Tags"], queries=tag):
                 tagged_PostID_list.append({'@Id':post['@Id'], '@OwnerUserId':post['@OwnerUserId'], '@Score':post['@Score'], '@ViewCount':post['@ViewCount']})
                 
-    print(str(tag) + " posts found --> ", len(tagged_PostID_list))
+    # print(str(tag) + " posts found --> ", len(tagged_PostID_list))
     f.close()
     return tagged_PostID_list
+
 
 
 def queryAnswers(answers_list=None, tagged_PostList=None):
@@ -161,9 +177,9 @@ def queryOwners(tagged_posts=None, vote_counts=None):
 questions = getQuestions()
 answers = getAnswers()
 
-tagged_Questions = queryQuestions(questions_list=questions, tag="<machine-learning>")
+# tagged_Questions = queryQuestions(questions_list=questions, tag="<machine-learning>")
 # tagged_Questions = queryQuestions(questions_list=questions, tag="<python>")
-# tagged_Questions = queryQuestions(questions_list=questions, tag="<sql>")
+tagged_Questions = queryQuestions(questions_list=questions, tag=args.tag)
 
 print("len(tagged questions: ) --> ", len(tagged_Questions))
 tagged_Answers = queryAnswers(answers_list=answers, tagged_PostList=tagged_Questions)
@@ -174,7 +190,7 @@ vote_Counts = voteAnalysis(tagged_votes=tagged_Votes, tagged_posts=tagged_Answer
 
 owner_post_VoteCounts = queryOwners(tagged_posts=tagged_Answers, vote_counts=vote_Counts)
 
-# print(owner_post_VoteCounts)
+print(owner_post_VoteCounts)
 
 
 
