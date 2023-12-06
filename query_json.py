@@ -4,6 +4,7 @@ import json
 import os
 import pickle
 import argparse 
+import numpy as np
 path = "json/"
 files = [f for f in os.listdir(path)]
 
@@ -191,7 +192,6 @@ def saveDict(dict):
 
 
 def sum_userVotes(tag=args.tag):
-    import numpy as np
     d_dict = None
     
     try:
@@ -248,8 +248,6 @@ def sum_userVotes(tag=args.tag):
     
 def make_upvote_vs_downvote_Histogram(vote_list=None):
     import matplotlib.pyplot as plt
-    import numpy as np
-
     from matplotlib import colors
     from matplotlib.ticker import PercentFormatter
     
@@ -284,7 +282,6 @@ def make_upvote_vs_downvote_Histogram(vote_list=None):
     
 def hexagonalHistogram(vote_list=None):
     import matplotlib.pyplot as plt
-    import numpy as np
 
     # Fixing random state for reproducibility
     np.random.seed(19680801)
@@ -327,7 +324,6 @@ def set_axis_style(ax, labels):
 
 def violinPlot(vote_list=None):
     import matplotlib.pyplot as plt
-    import numpy as np
     
     # ai_vote_list, ml_vote_list, python_vote_list, nlp_vote_list
     
@@ -361,54 +357,22 @@ def violinPlot(vote_list=None):
             vote_list, showmeans=False, showmedians=False,
             showextrema=False)
     
-    # print(vote_list)
-    
-    # fig = plt.figure()
-    
-
-    # Create an axes instance
-    ax = fig.add_axes([0,0,1,1])
-    
     ax1.set_title('Default violin plot')
     ax1.set_ylabel('UpVotes - DownVotes')
+    ax1.violinplot(vote_list)
 
-    # Create the boxplot
-    bp = ax.violinplot(vote_list, showmeans=True, showmedians=False)
+    ax2.set_title('Customized violin plot')
+    parts = ax2.violinplot(
+            vote_list, showmeans=False, showmedians=False,
+            showextrema=False)
+    
+    labels = ['ai', 'ml', 'python', 'nlp']
+    for ax in [ax1, ax2]:
+        set_axis_style(ax, labels)
+
+
     plt.show()
 
-    # ax1.set_title('Default violin plot')
-    # ax1.set_ylabel('UpVotes - DownVotes')
-    # ax1.violinplot(vote_list)
-
-    # ax2.set_title('UpVotes - DownVotes for  various StackExchange tags violin plot')
-    # parts = ax2.violinplot(
-    #         vote_list, showmeans=False, showmedians=False,
-    #         showextrema=False)
-
-    # for pc in parts['bodies']:
-    #     pc.set_facecolor('#D43F3A')
-    #     pc.set_edgecolor('black')
-    #     pc.set_alpha(1)
-
-    # quartile1, medians, quartile3 = np.percentile(vote_list, [25, 50, 75], axis=1)
-    # whiskers = np.array([
-    #     adjacent_values(sorted_array, q1, q3)
-    #     for sorted_array, q1, q3 in zip(vote_list, quartile1, quartile3)])
-    # whiskers_min, whiskers_max = whiskers[:, 0], whiskers[:, 1]
-
-    # inds = np.arange(1, len(medians) + 1)
-    # ax2.scatter(inds, medians, marker='o', color='white', s=30, zorder=3)
-    # ax2.vlines(inds, quartile1, quartile3, color='k', linestyle='-', lw=5)
-    # ax2.vlines(inds, whiskers_min, whiskers_max, color='k', linestyle='-', lw=1)
-
-    # # set style for the axes
-    # labels = ['A', 'B', 'C', 'D']
-    # for ax in [ax1, ax2]:
-    #     set_axis_style(ax, labels)
-
-    # plt.subplots_adjust(bottom=0.15, wspace=0.05)
-    
-    # plt.show()
     plt.savefig("data/imgs/" + args.tag + str(args.answer) + 'volinPlot.png')
 
 def makeScatterPlot(vote_list=None):
