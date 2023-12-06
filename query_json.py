@@ -162,7 +162,7 @@ def queryOwners(tagged_posts=None, vote_counts=None):
     owner_post_vote_counts_dicts = {}
     for post in tagged_posts:
 
-        if checkKey(d=vote_Counts, key=post['@Id']) and checkKey(d=post, key='@OwnerUserId'):
+        if checkKey(d=vote_counts, key=post['@Id']) and checkKey(d=post, key='@OwnerUserId'):
             if post['@OwnerUserId'] not in owner_post_vote_counts_dicts:
                 tmp = {post['@OwnerUserId']: {post['@Id']:vote_counts[post['@Id']]}}
                 owner_post_vote_counts_dicts.update(tmp)
@@ -188,22 +188,37 @@ answers = getAnswers()
 
 # tagged_Questions = queryQuestions(questions_list=questions, tag="<machine-learning>")
 # tagged_Questions = queryQuestions(questions_list=questions, tag="<python>")
-tagged_Questions = queryQuestions(questions_list=questions, tag=args.tag)
+# tagged_Questions = queryQuestions(questions_list=questions, tag=args.tag)
 
-print("len(tagged questions: ) --> ", len(tagged_Questions))
-tagged_Answers = queryAnswers(answers_list=answers, tagged_PostList=tagged_Questions)
-print("len(tagged_Answers) --> ", len(tagged_Answers))
+# print("len(tagged questions: ) --> ", len(tagged_Questions))
+# tagged_Answers = queryAnswers(answers_list=answers, tagged_PostList=tagged_Questions)
+# print("len(tagged_Answers) --> ", len(tagged_Answers))
 
-tagged_Votes = queryVotes(tagged_list=tagged_Answers)
-vote_Counts = voteAnalysis(tagged_votes=tagged_Votes, tagged_posts=tagged_Answers)
+# tagged_Votes = queryVotes(tagged_list=tagged_Answers)
+# vote_Counts = voteAnalysis(tagged_votes=tagged_Votes, tagged_posts=tagged_Answers)
 
-owner_post_VoteCounts = queryOwners(tagged_posts=tagged_Answers, vote_counts=vote_Counts)
-saveDict(owner_post_VoteCounts)
+# owner_post_VoteCounts = queryOwners(tagged_posts=tagged_Answers, vote_counts=vote_Counts)
+# saveDict(owner_post_VoteCounts)
 
 # print(owner_post_VoteCounts)
 
 
+def main():
+    print("Hello World!")
+    tagged_Questions = queryQuestions(questions_list=questions, tag=args.tag)
 
+    print("len(tagged questions: ) --> ", len(tagged_Questions))
+    tagged_Answers = queryAnswers(answers_list=answers, tagged_PostList=tagged_Questions)
+    print("len(tagged_Answers) --> ", len(tagged_Answers))
+
+    tagged_Votes = queryVotes(tagged_list=tagged_Answers)
+    vote_Counts = voteAnalysis(tagged_votes=tagged_Votes, tagged_posts=tagged_Answers)
+
+    owner_post_VoteCounts = queryOwners(tagged_posts=tagged_Answers, vote_counts=vote_Counts)
+    saveDict(owner_post_VoteCounts)
+
+if __name__ == "__main__":
+    main()
 
 
 
