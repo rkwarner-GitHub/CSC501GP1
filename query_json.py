@@ -8,6 +8,8 @@ import numpy as np
 path = "json/"
 files = [f for f in os.listdir(path)]
 
+    
+
 def boolean_string(s):
     if s not in {'False', 'True'}:
         raise ValueError('Not a valid boolean string')
@@ -15,10 +17,10 @@ def boolean_string(s):
 
 parser = argparse.ArgumentParser(description='Process some integers.')
 
-parser.add_argument('--tag', type=str, help='tags to search for')
-parser.add_argument('--newquery', type=boolean_string, default=False, help='run new query')
+parser.add_argument('--tag', type=str, help='tags to search stackexchange database for')
+parser.add_argument('--newquery', type=boolean_string, default=False, help='set to true to run new query')
 parser.add_argument('--load', type=boolean_string, default=False, help='load from save file')
-parser.add_argument('--answer', type=boolean_string, default=True, help='choose True to get questions')
+parser.add_argument('--answer', type=boolean_string, default=True, help='choose True to get questions or False for actions')
 
 args = parser.parse_args()
 print(args)

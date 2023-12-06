@@ -4,7 +4,21 @@ import os
 path = "datascience.stackexchange.com/"
 files = [f for f in os.listdir(path)]
 print("files --> ", files)
- 
+
+try: 
+    os.makedirs("data/imgs/", exist_ok = True) 
+except OSError as error: 
+    print("directories alread exist") 
+    
+try: 
+    os.makedirs("json/", exist_ok = True) 
+except OSError as error: 
+    print("directories alread exist") 
+
+try: 
+    os.makedirs("datascience.stackexchange.com/", exist_ok = True) 
+except OSError as error: 
+    print("directories alread exist") 
  
 # open the input xml file and read
 # data in form of python dictionary 
