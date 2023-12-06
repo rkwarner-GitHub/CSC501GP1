@@ -2,4 +2,5 @@ env/
 datascience.stackexchange.com/
 json/
 data/
+imgs/
 *.pickle
