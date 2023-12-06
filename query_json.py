@@ -49,6 +49,22 @@ def getAnswers():
     
     print(len(answers_list))         
     return answers_list
+
+def get_tags():
+    import xml.etree.ElementTree as ET
+    # load and parse the file
+    xmlTree = ET.parse('myXMLFile.xml')
+
+    elemList = []
+
+    for elem in xmlTree.iter():
+        elemList.append(elem.tag)
+
+    # now I remove duplicities - by convertion to set and back to list
+    elemList = list(set(elemList))
+
+    # Just printing out the result
+    print(elemList)
     
 def queryQuestions(questions_list=None, tag=None):
     # Opening JSON file
@@ -60,21 +76,13 @@ def queryQuestions(questions_list=None, tag=None):
             if post['@Tags'] == tag: 
                 tagged_PostID_list.append({'@Id':post['@Id'], '@OwnerUserId':post['@OwnerUserId'], '@Score':post['@Score'], '@ViewCount':post['@ViewCount']})
                 
-    print("machine learning posts found --> ", len(tagged_PostID_list))
+    print(str(tag) + " posts found --> ", len(tagged_PostID_list))
     f.close()
     return tagged_PostID_list
 
-# posttype --> 1:question, 2:answers
-# parentID (for answer) 
+
 def queryAnswers(answers_list=None, tagged_PostList=None):
     f = open('json/Posts.json') 
-
-    
-    # Query PosttypeID --> 2 (answer), if posttypeID==2 get parentID 
-    # to find the most downvoted:
-    # 1) find posts w/ PostTypeID == 2 then take parentID and compare it to the list of postID dictionaries
-    # 2)to find votes --> take the new postID list and find the VoteTypeID and count it
-    # 3) then we need to the list postIDs according to score and or the amount of downvotes?
     
     tagged_answer_list = []
     for answer in answers_list:
@@ -84,6 +92,7 @@ def queryAnswers(answers_list=None, tagged_PostList=None):
     
 
     return tagged_answer_list
+
     
     
 def queryVotes(tagged_list=None):
@@ -97,7 +106,6 @@ def queryVotes(tagged_list=None):
     
     tagged_vote_list = []
     for vote in vote_list:
-        # print(vote.keys())
         for post in tagged_list:
             if vote['@PostId'] == post["@Id"]:
                 tagged_vote_list.append({'@Id':vote['@PostId'], '@VoteTypeId': vote['@VoteTypeId']})
@@ -110,14 +118,11 @@ def voteAnalysis(tagged_votes=None, tagged_posts=None):
     for post in tagged_posts:
         for vote in tagged_votes:
             if vote['@Id'] == post['@Id']:
-                # print(post['@Id'],vote['@Id'],vote['@VoteTypeId'])
                 
                 if post['@Id'] not in postID_vote_dict:
                     tmp = {post['@Id']:{"1":0, "2":0, "3":0, "12":0, "15":0}}
                     postID_vote_dict.update(tmp)
-                    # vote ID 1, 2, 3, 12 and 15
-                    # print(tmp)
-                    # assert False
+
                 else:
                     if vote['@VoteTypeId'] == str(1):
                         postID_vote_dict[post['@Id']]["1"] += 1
@@ -134,17 +139,32 @@ def voteAnalysis(tagged_votes=None, tagged_posts=None):
                     elif vote['@VoteTypeId'] == str(15):
                         postID_vote_dict[post['@Id']]["15"] += 1
 
-                    # postID_vote_dict[post['@Id']] += 1
-    # print(postID_vote_dict['120324'])
     return postID_vote_dict   
 
+def queryOwners(tagged_posts=None, vote_counts=None):
 
+    owner_post_vote_counts_dicts = {}
+    for post in tagged_posts:
+
+        if checkKey(d=vote_Counts, key=post['@Id']) and checkKey(d=post, key='@OwnerUserId'):
+            if post['@OwnerUserId'] not in owner_post_vote_counts_dicts:
+                tmp = {post['@OwnerUserId']: {post['@Id']:vote_counts[post['@Id']]}}
+                owner_post_vote_counts_dicts.update(tmp)
+                
+            else:
+                tmp = {post['@Id']:vote_counts[post['@Id']]}
+                owner_post_vote_counts_dicts[post['@OwnerUserId']].update(tmp)
+
+    return owner_post_vote_counts_dicts
 
 
 questions = getQuestions()
 answers = getAnswers()
 
 tagged_Questions = queryQuestions(questions_list=questions, tag="<machine-learning>")
+# tagged_Questions = queryQuestions(questions_list=questions, tag="<python>")
+# tagged_Questions = queryQuestions(questions_list=questions, tag="<sql>")
+
 print("len(tagged questions: ) --> ", len(tagged_Questions))
 tagged_Answers = queryAnswers(answers_list=answers, tagged_PostList=tagged_Questions)
 print("len(tagged_Answers) --> ", len(tagged_Answers))
@@ -152,9 +172,10 @@ print("len(tagged_Answers) --> ", len(tagged_Answers))
 tagged_Votes = queryVotes(tagged_list=tagged_Answers)
 vote_Counts = voteAnalysis(tagged_votes=tagged_Votes, tagged_posts=tagged_Answers)
 
+owner_post_VoteCounts = queryOwners(tagged_posts=tagged_Answers, vote_counts=vote_Counts)
 
-# print("wtf: ", len(tagged_votes))
-# print(tagged_votes[69])
+# print(owner_post_VoteCounts)
+
 
 
 
