@@ -21,6 +21,8 @@ parser.add_argument('--tag', type=str, help='tags to search stackexchange databa
 parser.add_argument('--newquery', type=boolean_string, default=False, help='set to true to run new query')
 parser.add_argument('--load', type=boolean_string, default=False, help='load from save file')
 parser.add_argument('--answer', type=boolean_string, default=True, help='choose True to get questions or False for actions')
+parser.add_argument('--no_tag', type=boolean_string, default=False, help='choose True for entire dataset')
+
 
 args = parser.parse_args()
 print(args)
@@ -455,8 +457,26 @@ def make3DScatterPlot(vote_list=None):
 
 def main():
     # print("Hello World!")
+    if args.no_tag and args.tag == "<69>" and not args.load:
+        if args.answer:
+            questions = getQuestions()
+            Votes = queryVotes(tagged_list=questions)
+            vote_Counts = voteAnalysis(tagged_votes=Votes, tagged_posts=questions)
+            owner_post_VoteCounts = queryOwners(tagged_posts=questions, vote_counts=vote_Counts)
+            saveDict(owner_post_VoteCounts)
+            vote_list = sum_userVotes()
+            
+        else:
+            print("analyzin answers")
+            answers = getAnswers()
+            Votes = queryVotes(tagged_list=answers)
+            vote_Counts = voteAnalysis(tagged_votes=Votes, tagged_posts=answers)
+            owner_post_VoteCounts = queryOwners(tagged_posts=answers, vote_counts=vote_Counts)
+            saveDict(owner_post_VoteCounts)
+            vote_list = sum_userVotes()
+        
 
-    if args.newquery and args.answer and not args.load:
+    elif args.newquery and args.answer and not args.load:
         questions = getQuestions()
         answers = getAnswers()
         tagged_Questions = queryQuestions(questions_list=questions, tag=args.tag)
@@ -473,7 +493,7 @@ def main():
         vote_list = sum_userVotes()
         makeScatterPlot(vote_list=vote_list)
     
-    elif args.newquery and not args.answer:
+    elif args.newquery and not args.answer and not args.load:
         print("looking for question")
         questions = getQuestions()
         answers = getAnswers()
