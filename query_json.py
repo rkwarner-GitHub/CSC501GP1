@@ -29,7 +29,7 @@ print(args)
 args.tag = "<" + args.tag + ">"
 
 def checkKey(d=None, key=None):
-     
+
     if key in d:
        return True
     else:
@@ -224,30 +224,63 @@ def sum_userVotes(tag=args.tag):
         
         d = d_dict[str(key)]
         tmp = sorted(d_dict[str(key)].keys())
-        d = d[tmp[0]]
+        # print("tmp --> ", tmp)
+        # d = d[tmp[0]]
 
         up_votes = 0
         down_votes = 0
         accepted_votes = 0
         spam_votes = 0
         
-        for vote_types in d.keys():
+        # print("key --> ", d_dict[str(key)])
+        # print('d.keys() --> ', d.keys())
+        # print('d --> ', d)
+        # print('up_votes old --> ', down_votes)
+        
+        for key in tmp:
+            # print("key --> ", key)
+            # print("d[key] out --> ", d[key])
+            for vote_types in  d[key].keys():
+                if vote_types == '1':
+                    accepted_votes += d[key]['1']
+                    
+                elif vote_types == '2':
+                    # print('vote_types --> ', vote_types)
+                    up_votes += d[key]['2']
+                    # print('d[2] --> ', d[key]['2'])
 
-            if vote_types == '1':
-                accepted_votes += d['1']
+                elif vote_types == '3':
+                    down_votes += d[key]['3']
                 
-            elif vote_types == '2':
-                up_votes += d['2']
+                elif vote_types == '12':
+                    spam_votes += d[key]['12']
+        
+        
+        # assert False    
+        # for vote_types in d.keys():
+        #     if vote_types == '1':
+        #         accepted_votes += d['1']
+                
+        #     elif vote_types == '2':
+        #         print('vote_types --> ', vote_types)
+        #         up_votes += d['2']
+        #         print('d[2] --> ', d['2'])
 
-            elif vote_types == '3':
-                down_votes += d['3']
+        #     elif vote_types == '3':
+        #         down_votes += d['3']
             
-            elif vote_types == '12':
-                spam_votes += d['12']
+        #     elif vote_types == '12':
+        #         spam_votes += d['12']
             
         # print("counts: ", d['count'])
         
-        post_count_list.append(d['count'])
+        # print('up_votes new --> ', up_votes)
+        # if idx > 20:
+        #     assert False
+        
+        # print("d er --> ", d)
+        # print('\n')
+        post_count_list.append(d[key]['count'])
         up_vote_list.append(up_votes)
         down_vote_list.append(down_votes)
         accepted_vote_list.append(accepted_votes)
@@ -350,13 +383,18 @@ def violinPlot(vote_list=None):
     python_downvote = np.array(vote_list[2][1]).astype(np.float32)
     nlp_upvote = np.array(vote_list[3][0]).astype(np.float32)
     nlp_downvote = np.array(vote_list[3][1]).astype(np.float32)
+    all_upvote = np.array(vote_list[4][0]).astype(np.float32)
+    all_downvote = np.array(vote_list[4][1]).astype(np.float32)
     
     ai_y = ai_upvote - ai_downvote
     ml_y = ml_upvote - ml_downvote
     python_y = python_upvote - python_downvote
     nlp_y = nlp_upvote - nlp_downvote
+    all_y = all_upvote - all_downvote
     
-    vote_list = [ai_y, ml_y, python_y,  nlp_y]
+    print("#users: ", len(all_y))
+    
+    vote_list = [ai_y, ml_y, python_y,  nlp_y, all_y]
     
     # # create test data
     # np.random.seed(19680801)
@@ -372,7 +410,7 @@ def violinPlot(vote_list=None):
             vote_list, showmeans=False, showmedians=False,
             showextrema=False)
     
-    ax1.set_title('Default violin plot')
+    ax1.set_title('Violin plot')
     ax1.set_ylabel('UpVotes - DownVotes')
     ax1.violinplot(vote_list)
 
@@ -381,7 +419,7 @@ def violinPlot(vote_list=None):
             vote_list, showmeans=False, showmedians=False,
             showextrema=False)
     
-    labels = ['ai', 'ml', 'python', 'nlp']
+    labels = ['ai', 'ml', 'python', 'nlp', 'all']
     for ax in [ax1, ax2]:
         set_axis_style(ax, labels)
 
@@ -411,16 +449,19 @@ def makeScatterPlot(vote_list=None):
     print(np.max(accepted_votes))
     print(np.min(spam_votes))
     
-    print(accepted_votes)
-    
     
     N = len(x)
     colors = np.random.rand(N)
     area = ((30 * np.random.rand(N))**2).astype(np.float32)  # 0 to 15 point radii
+    
+    fig = plt.figure()
+    ax = fig.add_subplot()
+    
+    ax.scatter(x, y, s=area, c=colors, alpha=0.5)
+    ax.set_xlabel('UpVotes - DownVotes')
+    ax.set_ylabel('AcceptedAnswer - Spam')
+    ax.set_title('Scatter plot: ' + args.tag + "Answer: " + str(args.answer))
 
-    plt.scatter(x, y, s=area, c=colors, alpha=0.5)
-    # plt.scatter(x, y, c=colors, alpha=0.5)
-    plt.scatter(x, y)
     # plt.show() 
     plt.savefig("data/imgs/" + args.tag[1:-1] + str(args.answer) + '.png') 
 
@@ -451,14 +492,15 @@ def make3DScatterPlot(vote_list=None):
     ax.set_xlabel('UpVotes - DownVotes')
     ax.set_ylabel('AcceptedAnswer - Spam')
     ax.set_zlabel('# of posts')
+    ax.set_title('3DScatter plot: ' + args.tag + "Answer: " + str(args.answer))
     plt.savefig("data/imgs/" + args.tag[1:-1] + str(args.answer) + '3Dscatter.png') 
 
     # plt.show()  
 
 def main():
     # print("Hello World!")
-    if args.no_tag and args.tag == "<69>" and not args.load:
-        if args.answer:
+    if args.no_tag and args.tag == "<all>" and not args.load:
+        if not args.answer:
             questions = getQuestions()
             Votes = queryVotes(tagged_list=questions)
             vote_Counts = voteAnalysis(tagged_votes=Votes, tagged_posts=questions)
@@ -516,12 +558,13 @@ def main():
         make3DScatterPlot(vote_list=vote_list)
         
         
-        # ai_vote_list = sum_userVotes(tag="<ai>")
-        # ml_vote_list = sum_userVotes("<machine-learning>")
-        # python_vote_list = sum_userVotes("<python>")
-        # nlp_vote_list = sum_userVotes("<nlp>")
-        # violin_list = [ai_vote_list, ml_vote_list, python_vote_list, nlp_vote_list]
-        # violinPlot(vote_list=violin_list)
+        ai_vote_list = sum_userVotes(tag="<ai>")
+        ml_vote_list = sum_userVotes("<machine-learning>")
+        python_vote_list = sum_userVotes("<python>")
+        nlp_vote_list = sum_userVotes("<nlp>")
+        all_vote_list = sum_userVotes("<all>")
+        violin_list = [ai_vote_list, ml_vote_list, python_vote_list, nlp_vote_list, all_vote_list]
+        violinPlot(vote_list=violin_list)
     
 if __name__ == "__main__":
     main()
