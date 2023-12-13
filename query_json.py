@@ -555,7 +555,6 @@ def makeNodes():
     G = nx.DiGraph()
     
     for filename in files:
-        # print(filename)
 
         f = open(path + filename) 
 
@@ -567,8 +566,6 @@ def makeNodes():
 
         post_dict = {}
         for post in post_list:
-            # if post['@Id'] not in post_dict:
-                # print(post)
             if node_name == 'users':
                 if post['@Id'] not in post_dict:
                     tmp = {post['@Id']: post}
@@ -576,7 +573,8 @@ def makeNodes():
             elif node_name == 'posts':
                 if checkKey(d=post, key='@OwnerUserId'):
                     if post['@OwnerUserId'] not in post_dict:
-                        tmp = {post['@OwnerUserId']: post}
+                        # tmp = {post['@OwnerUserId']: post}
+                        tmp = {post['@Id']: post}
                 
             elif node_name == 'votes':
                 if checkKey(d=post, key='@PostId'):
@@ -585,143 +583,142 @@ def makeNodes():
             
             else:
                 tmp = {post['@Id']: post}
-            # tmp = {post}
             
             post_dict.update(tmp)
-            # if post['@Id'] not in post_dict:
-            #     # print(post)
-            #     if node_name == 'users':
-            #         tmp = {post['@Id']: post}
-                    
-            #     elif node_name == 'posts':
-            #         [print([post])]
-            #         tmp = {post['OwnerUserId']: post}
-                    
-            #     elif node_name == 'votes':
-            #         tmp = {post['PostId']: post}
-                
-            #     else:
-            #         tmp = {post['@Id']: post}
-            #     # tmp = {post}
-                
-            #     post_dict.update(tmp)
                 
         G.add_nodes_from([(node_name, post_dict)])
         
-        nx.draw(G, with_labels=True) 
-        plt.savefig("data/imgs/GraphEdges.png", format="PNG") 
+        # nx.draw(G, with_labels=True) 
+        # plt.savefig("data/imgs/Graph.png", format="PNG") 
+        
+    print(G.nodes())
+    for node in G.nodes['users']:
+        print(node)
+    # print(type(G.nodes['users']))
     
-    # print("UMMM --> ", G.nodes['users']['29478'])
+    # G.add_edge('users', 'posts')
+    # G.add_edge('posts', 'comments')
+        
+    nx.draw(G, with_labels=True) 
+    plt.savefig("data/imgs/TESTICULARGraph.png", format="PNG") 
+    
     # assert False
+        
+    G = getQANodes(G=G)
+    
     return G
 
 def makeEdges(G=None):
-
     
-        
-        # data_to_csv= open(path + filename + '.csv','w')
-        
-        # list_head=[]
-
-        # Csv_writer=csv.writer(data_to_csv)
-    
-    # print("tree: \n ", tree)
-    # print("root: \n ", root)
-    
-    # for item in root.iter("row"):
-    #     # print("ehut --> ", item)
-    #     print(item.attrib["Id"])
-        
+    # print("OHHH", G.nodes['questions'][str(31)])
+    # print("UMMMM", G.nodes['questions'][str(35)])
     # assert False
     
-    #  G1 = nx.DiGraph()
-    
-    csv_path = "csv/"
-    files = [f for f in os.listdir(csv_path)]
-    
-    print(files)
-    
-    df_users = None
-    df_posts = None
-    df_Tags = None
-    df_votes = None
-    
-    users_head = []
-    posts_head = []
-    tags_head = []
-    votes_head = []
-    
-    for file in files:
-        file = file.split('.')
-        
-        df = None
-        print("file[0] --> ", file[0])
-        
-        if file[0] == 'Users':
-            head = users_head
-            df_users = pd.read_csv(csv_path + file[0] + '.csv')
-            df = df_users
-            for col in df.columns:
-                head.append(col)
-            
-        elif file[0] == 'Posts':
-            head = posts_head
-            df_posts = pd.read_csv(csv_path + file[0] + '.csv')
-            df = df_posts
-            for col in df.columns:
-                head.append(col)
-        
-        elif file[0] == 'Tags':
-            head = tags_head
-            df_tags = pd.read_csv(csv_path + file[0] + '.csv')
-            df = df_tags
-            for col in df.columns:
-                head.append(col)
-        
-        elif file[0] == 'Votes':
-            head = votes_head
-            df_votes = pd.read_csv(csv_path + file[0] + '.csv')
-            df = df_votes
-            for col in df.columns:
-                head.append(col)
-        else:
-            next
-        
-        
-        
-            
-        # df1 = df[head]
-        
-    # print("head --> ", head)
-    print("users_head --> ", users_head)
-    print("posts_head --> ", posts_head)
-    print("tags_head --> ", tags_head)
-    print("votes_head --> ", votes_head)
-    
-    # print(G.nodes['posts'])
-    # assert False
-    
+    # i = 0
     for user_node in G.nodes['users']:
         if user_node in G.nodes['posts']:
-            
-            if checkKey(d=G.nodes['posts'][user_node], key='@Tags'):
-                G.add_edge(user_node, user_node, posttypeid=G.nodes['posts'][user_node]['@PostTypeId'], tags=G.nodes['posts'][user_node]['@Tags'])
-                
+            G.add_edge(
+                'users',
+                'posts',
+                # G.nodes['users'][user_node]['@Id'], 
+                # G.nodes['posts'][user_node]['@OwnerUserId'], 
+                # posttypeid=G.nodes['posts'][user_node]['@PostTypeId']
+                )
+
     for post_node in G.nodes['posts']:
         if checkKey(d=G.nodes['votes'], key=G.nodes['posts'][post_node]['@Id']):
             if checkKey(d=G.nodes['votes'][G.nodes['posts'][post_node]['@Id']], key='@VoteTypeId'):
-                if G.nodes['posts'][post_node]['@Id'] in G.nodes['votes']:
+                if G.nodes['posts'][post_node]['@Id'] in G.nodes['questions']:
+
                     G.add_edge(
-                        G.nodes['posts'][post_node]['@Id'],
-                        G.nodes['posts'][post_node]['@Id'],
-                        votetypeid=G.nodes['votes'][G.nodes['posts'][post_node]['@Id']]['@VoteTypeId']
+                        'posts',
+                        'questions',
+                        # G.nodes['posts'][post_node]['@Id'],
+                        # G.nodes['questions'][post_node]['@Id'],
+                        # tags=G.nodes['questions'][G.nodes['posts'][post_node]['@Id']]['@Tags'],
+                        # reputation=G.nodes['questions'][G.nodes['posts'][post_node]['@Id']]['@Reputation'],
+                        # votetypeid=G.nodes['votes'][G.nodes['posts'][post_node]['@Id']]['@VoteTypeId'] # dunno if i should keep this here or up thurr
                     )
-    
-    
-    
-    # nx.draw(G, with_labels=True) 
-    # plt.savefig("data/imgs/EdgesGraph.png", format="PNG")
+                    
+                if G.nodes['posts'][post_node]['@Id'] in G.nodes['answers']:
+                    
+                    G.add_edge(
+                        'posts',
+                        'answers',
+                        # G.nodes['posts'][post_node]['@Id'],
+                        # G.nodes['answers'][post_node]['@Id'],
+                        # tags=G.nodes['questions'][G.nodes['answers'][post_node]['@ParentId']]['@Tags'],
+                        # reputation=G.nodes['answers'][G.nodes['posts'][post_node]['@Id']]['@Reputation'],
+                        # votetypeid=G.nodes['votes'][G.nodes['posts'][post_node]['@Id']]['@VoteTypeId'] # dunno if i should keep this here or up thurr
+                    )
+                    
+                if G.nodes['posts'][post_node]['@Id'] in G.nodes['votes']:
+                    
+                    if G.nodes['posts'][post_node]['@Id'] in G.nodes['questions']:
+
+                        G.add_edge(
+                            'questions',
+                            'votes',
+                            # G.nodes['questions'][post_node]['@Id'],
+                            # G.nodes['votes'][post_node]['@PostId'],
+                             tags=G.nodes['questions'][post_node]['@Tags'],
+                            posttypeid=G.nodes['posts'][post_node]['@PostTypeId'],
+                            votetypeid=G.nodes['votes'][G.nodes['posts'][post_node]['@Id']]['@VoteTypeId'],
+                            reputation=G.nodes['questions'][G.nodes['posts'][post_node]['@Id']]['@Reputation']
+                        )
+                        
+                        
+                    if G.nodes['posts'][post_node]['@Id'] in G.nodes['answers']:
+                        G.add_edge(
+                            'posts',
+                            'answers',
+                            # G.nodes['answers'][post_node]['@Id'],
+                            # G.nodes['votes'][post_node]['@Id'],
+                            tags=G.nodes['questions'][G.nodes['answers'][post_node]['@ParentId']]['@Tags'],
+                            posttypeid=G.nodes['posts'][post_node]['@PostTypeId'],
+                            votetypeid=G.nodes['votes'][G.nodes['posts'][post_node]['@Id']]['@VoteTypeId'],
+                            reputation=G.nodes['answers'][G.nodes['posts'][post_node]['@Id']]['@Reputation'],
+                        )
+        
+
+    return G
               
+def getQANodes(G=None):
+        
+    questions_dict = {}
+    answers_dict = {}
+    questions = 'questions'
+    answers = 'answers'   
+    for post in G.nodes['posts']:
+        
+        if G.nodes['posts'][post]['@PostTypeId'] == '1':
+            if checkKey(d=G.nodes['posts'][post], key='@Tags'):
+                tmp = {G.nodes['posts'][post]['@Id']: {
+                    '@Id': G.nodes['posts'][post]['@Id'], 
+                    '@Tags': G.nodes['posts'][post]['@Tags'], 
+                    '@PostTypeId': G.nodes['posts'][post]['@PostTypeId'], 
+                    '@Reputation': G.nodes['users'][ G.nodes['posts'][post]['@OwnerUserId']]['@Reputation'],
+                    '@OwnerUserId': post
+                    }}
+                questions_dict.update(tmp)
+                
+        elif G.nodes['posts'][post]['@PostTypeId'] == '2':
+            if checkKey(d=G.nodes['posts'][post], key='@ParentId') and checkKey(d=G.nodes['posts'], key=G.nodes['posts'][post]['@ParentId']):
+                tmp = {G.nodes['posts'][post]['@Id']: {
+                    '@Id': G.nodes['posts'][post]['@Id'], 
+                    '@ParentId': G.nodes['posts'][post]['@ParentId'], 
+                    '@PostTypeId': G.nodes['posts'][post]['@PostTypeId'], 
+                    '@Reputation': G.nodes['users'][ G.nodes['posts'][post]['@OwnerUserId']]['@Reputation'],
+                    '@OwnerUserId': post
+                    }}
+                # tmp = {G.nodes['posts'][post]['@ParentId']: {'@Id': post, '@ParentId': G.nodes['posts'][post]['@ParentId'], '@PostTypeId': G.nodes['posts'][post]['@PostTypeId'], '@Reputation': G.nodes['users'][ G.nodes['posts'][post]['@OwnerUserId']]['@Reputation']}}
+                answers_dict.update(tmp)
+        
+    G.add_nodes_from([(questions, questions_dict)])
+    G.add_nodes_from([(answers, answers_dict)])
+    
+    return G
+
 
 def saveCSV(filename=None, HEADERS=None, rows=None):
     
@@ -777,9 +774,84 @@ def saveCSV(filename=None, HEADERS=None, rows=None):
 def main():
     # saveCSV()
     G = makeNodes()
-    print("WHAT THE FICL \n", G.nodes())
+    print("Nodes: \n", G.nodes())
     G = makeEdges(G=G)
+    # for idx, node in enumerate(G.nodes):
+    #     if node == 'comments':
+    #         print("idx --> ", idx)
+    #         G.remove_node(idx)
+    
+    # print("Updated Nodes: \n", G.nodes())
+    # assert False
+
+    # print("Nodes: \n", G.nodes())
+    
+    print("DONE")
+    
+    # print(G.nodes())
+    print(nx.density(G))
+    # print(G.degree())
+    
+    for node, degree in list(G.degree()):
+        if degree == 0:
+            G.remove_node(node)
+    # print(nx.density(G))
+    # print(nx.number_connected_components(G))
+    # for node in G.nodes['posts']:
+    #     print("whut", node)
+    #     print("who ", G.nodes['users'][node])
+    #     print("in_edges --> ", G.in_edges(node))
+    #     print("out_edges --> ", G.out_edges(node))
+    #     assert False
+    
+    # for node in G.nodes['users']:
+    #     print("whut", node)
+    #     print("who ", G.nodes['users'][node])
+    #     print("in_edges --> ", G.in_edges(node))
+    #     print("out_edges --> ", G.out_edges(node))
+    #     # assert False
+        
+    #     for post in G.in_edges(node):
+    #         print(G)
+    #         print("umm ", G.nodes['posts'][post[0]])
+    #         print("oo in_edges --> ", G.in_edges(G.nodes['posts'][post[0]]))
+    #         print("oo out_edges --> ", G.out_edges(G.nodes['posts'][post[0]]))
+    #         assert False
+      
+    # assert False  
+    
+    # for node in G.nodes['posts']:
+    #     print('\n')
+    #     print("node --> ", node)
+    #     print("in_edges --> ", G.in_edges(node))
+    #     print("out_edges --> ", G.out_edges(node))
+        # print('\n')
+    
+    # assert False
+    
+    # for edge in G.edges():
+    #     print(G.edges[edge])
+    #     assert False
+        # print(G.edges[edge]['votetypeid'])
+        # if checkKey(d=G.edges[edge], key='posttypeid') and checkKey(d=G.edges[edge], key='votetypeid'):
+        #     if G.edges[edge]['posttypeid'] == '1':
+        #         print('Question')
+        #         print(G.edges[edge]['votetypeid'])
+                
+        #     if G.edges[edge]['posttypeid'] == '2':
+        #         print('Answer')
+        #         print(G.edges[edge]['votetypeid'])
+        
+    
+    
+    # nx.draw(G, with_labels=True) 
+    # nodes = nx.draw_networkx_nodes(G, pos=nx.spring_layout(G))
+    nx.draw_random(G, with_labels=True, edgecolors='gray')
+    plt.savefig("data/imgs/ZULUTEST_Graph.png", format="PNG")
     assert False
+    
+    
+    
     if args.no_tag and args.tag == "<all>" and not args.load:
         if not args.answer:
             questions = getQuestions()
